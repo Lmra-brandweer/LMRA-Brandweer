@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#b91c1c">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon.svg">
+<title>LMRA Brandweer</title>
+<style>
+:root{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#17202a;background:#f4f5f6}
+*{box-sizing:border-box} body{margin:0} main{max-width:720px;margin:auto;padding:18px}
+.card{background:#fff;border:1px solid #d8dde2;border-radius:18px;padding:20px;margin-bottom:14px}
+h1,h2,h3,p{margin-top:0}.muted{color:#68727d}.small{font-size:.85rem}.tag{font-size:.76rem;font-weight:800;text-transform:uppercase;letter-spacing:.06em}
+button,textarea{font:inherit}button{min-height:50px;border:1px solid #cfd5db;border-radius:13px;background:#f7f8f9;padding:12px 15px;font-weight:750;cursor:pointer}
+.primary{background:#b91c1c;color:white;border-color:#b91c1c}.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.two{grid-template-columns:repeat(2,1fr)}textarea{width:100%;border:1px solid #cfd5db;border-radius:12px;padding:12px;font-size:16px}
+.progress{height:8px;background:#e7eaed;border-radius:99px;overflow:hidden}.bar{height:100%;background:#b91c1c}
+.hidden{display:none}.risk{border-color:#d99000;background:#fffaf0}.stop{border-color:#c62828;background:#fff5f5}
+.option{display:flex;gap:10px;align-items:flex-start;padding:11px;border:1px solid #d8dde2;border-radius:12px;margin:8px 0;background:white}
+.resultline{padding:12px 0;border-bottom:1px solid #e3e6e8}.resultline:last-child{border:0}
+.status{font-weight:800}.orange{color:#a86400}.green{color:#17743b}
+.header{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}.actions{display:flex;gap:10px;flex-wrap:wrap}
+@media(max-width:520px){.grid,.two{grid-template-columns:1fr}.header{display:block}.stamp{margin-top:5px}}
+@media print{body{background:white}button,.no-print{display:none!important}main{max-width:none;padding:0}.card{border:0;padding:8px 0}}
+</style>
+</head>
+<body><main>
+<section id="home">
+ <div class="card"><div class="tag muted">Digitale veiligheidscheck</div><h1>LMRA Brandweer</h1><p class="muted">Laatste Minuut Risicoanalyse vóór de werkzaamheden.</p></div>
+ <div class="card"><div class="tag muted">Interventie</div><h2>Reinigen wegdek</h2><p class="muted">7 controlepunten + algemene eindcontrole</p><button class="primary" id="start">Start LMRA →</button></div>
+</section>
+<section id="app" class="hidden">
+ <div class="card"><div class="header"><div><div class="tag muted">Reinigen wegdek</div><div id="count" class="status"></div></div><div id="stamp" class="muted small stamp"></div></div><div class="progress"><div id="bar" class="bar"></div></div></div>
+ <div id="question" class="card"><div id="cat" class="tag muted"></div><h2 id="qt"></h2><p id="hint" class="muted"></p><div class="grid"><button data-a="yes">✓ Ja</button><button data-a="no">✕ Nee</button><button data-a="na">— N.v.t.</button></div></div>
+ <div id="orange" class="card risk hidden"><h2>🟠 Risico eerst beheersen</h2><p class="muted">Duid de werkelijk uitgevoerde maatregel(en) aan.</p><div id="measures"></div><label><b>Andere maatregel</b></label><textarea id="custom" rows="2" maxlength="180" placeholder="Beschrijf de maatregel…"></textarea><p id="warn" class="orange hidden"><b>Kies of beschrijf eerst een maatregel.</b></p><button class="primary" id="fixed">✓ Maatregel uitgevoerd</button></div>
+ <div id="red" class="card stop hidden"><h2>🔴 STOP</h2><p id="redText"></p><button id="again">Situatie opnieuw beoordelen</button></div>
+ <div id="final" class="card hidden"><div class="tag muted">Algemene eindcontrole</div><h2>Zijn er nog andere gevaren of veranderende omstandigheden waarmee rekening moet worden gehouden?</h2><div class="grid two"><button class="primary" id="none">Nee → afronden</button><button id="extra">Ja → registreren</button></div></div>
+ <div id="extraPanel" class="card risk hidden"><h2>🟠 Bijkomend risico</h2><label><b>Welk gevaar?</b></label><textarea id="risk" rows="2"></textarea><br><br><label><b>Welke maatregel werd genomen?</b></label><textarea id="riskM" rows="2"></textarea><p id="extraWarn" class="orange hidden"><b>Vul beide velden in.</b></p><button class="primary" id="extraDone">✓ Risico beheerst</button></div>
+ <div id="report" class="hidden">
+   <div class="card"><div class="tag muted">LMRA afgerond</div><h2>🟢 Werkzaamheden kunnen starten</h2><p id="reportDate" class="muted"></p><p class="muted">De beoordeling is een momentopname. Bij gewijzigde omstandigheden moet de situatie opnieuw beoordeeld worden.</p></div>
+   <div class="card"><h2>Eindrapport</h2><div id="summary"></div></div>
+   <div class="actions no-print"><button class="primary" id="reassess">↻ LMRA opnieuw beoordelen</button><button id="print">Rapport afdrukken / PDF</button><button id="new">Nieuwe LMRA</button></div>
+ </div>
+ <button id="back" class="no-print">← Vorige vraag</button>
+</section>
+</main>
+<script>
+const Q=[
+{c:'1 · Veilige opstelling & verkeer',q:'Is de interventieplaats voldoende beveiligd tegen het aankomende verkeer?',h:'Beoordeel de opstelling van de voertuigen, verkeerssnelheid, zichtbaarheid en bescherming van de ploeg.',m:['Interventievoertuig veiliger opstellen','Bijkomende verkeerssignalisatie plaatsen','Rijstrook beveiligen of afsluiten','Politie/verkeersregeling inschakelen','Extra seingever inzetten']},
+{c:'2 · Zichtbaarheid',q:'Is de werkzone voldoende zichtbaar en verlicht?',h:'Hou rekening met duisternis, weersomstandigheden, bochten en beperkte zichtbaarheid.',m:['Bijkomende verlichting voorzien','Signalisatie uitbreiden','Zichtbaarheid van de werkzone verbeteren','Seingever op veilige positie inzetten']},
+{c:'3 · PBM',q:'Draagt de volledige ploeg geschikte persoonlijke beschermingsmiddelen?',h:'Controleer of de bescherming aangepast is aan de werkzaamheden en de aanwezige risico’s.',m:['Ontbrekende PBM aantrekken','Geschikte handschoenen voorzien','Zichtbaarheid van de ploeg verbeteren','Aanvullende bescherming voorzien']},
+{c:'4 · Product',q:'Is duidelijk welke vloeistof, stof of lading op het wegdek aanwezig is?',h:'Een onbekend product moet eerst geïdentificeerd en beoordeeld worden.',red:true,stop:'Start niet met reinigen zolang het product niet geïdentificeerd en beoordeeld is. Vraag indien nodig bijkomende middelen of deskundigheid.'},
+{c:'5 · Brand, explosie & energie',q:'Zijn eventuele brand-, explosie- en energiegevaren voldoende beheerst?',h:'Denk onder andere aan brandstof, beschadigde voertuigen, batterijen en andere energiebronnen.',m:['Ontstekingsbronnen uitsluiten','Veilige afstand instellen','Geschikt blusmiddel stand-by voorzien','Bijkomende gespecialiseerde middelen vragen']},
+{c:'6 · Milieu',q:'Is verspreiding naar riool, bodem of waterloop voorkomen?',h:'Controleer mogelijke verspreidingsroutes voordat met reinigen wordt gestart.',m:['Riool afschermen','Absorptiemateriaal of barrières plaatsen','Product indammen','Bijkomende milieumaatregelen nemen']},
+{c:'7 · Materieel & ploeg',q:'Zijn geschikt materieel, voldoende personeel en een duidelijke taakverdeling aanwezig?',h:'De ploeg moet de opdracht veilig kunnen uitvoeren en iedereen moet zijn taak kennen.',m:['Geschikt materieel bijvragen','Extra personeel of middelen vragen','Taakverdeling opnieuw afspreken','Werkwijze kort met de ploeg overlopen']}
+];
+let i=0,A=[],X=null,startTime=null;
+const e=id=>document.getElementById(id), show=id=>e(id).classList.remove('hidden'), hide=id=>e(id).classList.add('hidden');
+const fmt=d=>new Intl.DateTimeFormat('nl-BE',{dateStyle:'short',timeStyle:'short'}).format(d);
+function render(){['orange','red','final','extraPanel','report'].forEach(hide);show('question');show('back');e('count').textContent=`Vraag ${i+1} van ${Q.length}`;e('bar').style.width=((i+1)/Q.length*100)+'%';e('cat').textContent=Q[i].c;e('qt').textContent=Q[i].q;e('hint').textContent=Q[i].h;e('back').disabled=i===0}
+function next(){if(i<Q.length-1){i++;render()}else{hide('question');hide('back');show('final');e('count').textContent='Eindcontrole';e('bar').style.width='100%'}}
+function orange(){hide('question');show('orange');e('measures').innerHTML='';e('custom').value='';hide('warn');Q[i].m.forEach(v=>{const l=document.createElement('label'),b=document.createElement('input'),s=document.createElement('span');l.className='option';b.type='checkbox';b.value=v;s.textContent=v;l.append(b,s);e('measures').append(l)})}
+document.querySelectorAll('[data-a]').forEach(b=>b.addEventListener('click',()=>{const v=b.dataset.a;if(v==='yes'){A[i]={t:'ok'};next()}else if(v==='na'){A[i]={t:'na'};next()}else if(Q[i].red){hide('question');e('redText').textContent=Q[i].stop;show('red')}else orange()}));
+e('fixed').onclick=()=>{let m=[...e('measures').querySelectorAll('input:checked')].map(x=>x.value);const c=e('custom').value.trim();if(c)m.push(c);if(!m.length){show('warn');return}A[i]={t:'fixed',m};next()};
+e('again').onclick=()=>{hide('red');show('question')};e('back').onclick=()=>{if(i){i--;render()}};
+e('none').onclick=done;e('extra').onclick=()=>{hide('final');show('extraPanel')};
+e('extraDone').onclick=()=>{const a=e('risk').value.trim(),b=e('riskM').value.trim();if(!a||!b){show('extraWarn');return}X={risk:a,m:b};done()};
+function done(){['question','orange','red','final','extraPanel','back'].forEach(hide);show('report');e('count').textContent='LMRA afgerond';e('reportDate').textContent='Uitgevoerd: '+fmt(startTime);const s=e('summary');s.innerHTML='';A.forEach((a,n)=>{const d=document.createElement('div');d.className='resultline';const title=document.createElement('div');title.className='status green';title.textContent='🟢 '+Q[n].c.replace(/^\\d+ · /,'');const p=document.createElement('div');p.className='small muted';if(a?.t==='fixed'){p.innerHTML='<span class="orange">🟠 Risico vastgesteld</span> → maatregel uitgevoerd → risico beheerst<br>'+a.m.map(x=>escapeHtml(x)).join(', ')}else p.textContent=a?.t==='na'?'Niet van toepassing':'Geen bijkomend risico vastgesteld';d.append(title,p);s.append(d)});if(X){const d=document.createElement('div');d.className='resultline';d.innerHTML='<div class="status green">🟢 Bijkomend risico beheerst</div><div class="small muted"><span class="orange">🟠 '+escapeHtml(X.risk)+'</span> → '+escapeHtml(X.m)+'</div>';s.append(d)}}
+function escapeHtml(v){return v.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function begin(){i=0;A=Array(Q.length).fill(null);X=null;startTime=new Date();e('stamp').textContent=fmt(startTime);e('risk').value='';e('riskM').value='';hide('home');show('app');render()}
+e('start').onclick=begin;e('reassess').onclick=begin;e('new').onclick=()=>{hide('app');show('home')};e('print').onclick=()=>window.print();
+if('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(()=>{});
+</script></body></html>
